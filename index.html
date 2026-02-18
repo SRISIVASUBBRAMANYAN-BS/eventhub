@@ -4,7 +4,973 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EventHub - Create & Manage Events</title>
-    <link rel="stylesheet" href="styles.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #6366f1;
+            --secondary-color: #8b5cf6;
+            --danger-color: #ef4444;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --background-color: #f8fafc;
+            --card-background: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-primary);
+        }
+
+        /* Typography */
+        h1, h2, h3, h4, h5, h6 {
+            font-weight: 600;
+            line-height: 1.2;
+        }
+
+        h1 {
+            font-size: 2rem;
+        }
+
+        h2 {
+            font-size: 1.75rem;
+        }
+
+        h3 {
+            font-size: 1.25rem;
+        }
+
+        p {
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        a {
+            color: var(--primary-color);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        a:hover {
+            color: var(--secondary-color);
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #4f46e5;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .btn-secondary {
+            background-color: var(--border-color);
+            color: var(--text-primary);
+        }
+
+        .btn-secondary:hover {
+            background-color: #cbd5e1;
+        }
+
+        .btn-danger {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: #dc2626;
+        }
+
+        .btn-success {
+            background-color: var(--success-color);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background-color: #059669;
+        }
+
+        .btn-warning {
+            background-color: var(--warning-color);
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background-color: #d97706;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 0.875rem;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Forms */
+        .form-group {
+            margin-bottom: 1.5rem;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: inherit;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .form-group input[type="checkbox"],
+        .form-group input[type="radio"] {
+            margin-right: 0.5rem;
+            width: auto;
+        }
+
+        .form-group label:has(input[type="checkbox"]),
+        .form-group label:has(input[type="radio"]) {
+            display: flex;
+            align-items: center;
+            flex-direction: row;
+            margin-bottom: 0;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-top: 2rem;
+        }
+
+        .event-form {
+            background-color: var(--card-background);
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background-color: var(--card-background);
+            border-radius: 12px;
+            box-shadow: var(--shadow-lg);
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            font-size: 2rem;
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: color 0.3s ease;
+        }
+
+        .modal-close:hover {
+            color: var(--text-primary);
+        }
+
+        /* Auth Modal */
+        .auth-modal {
+            max-width: 450px;
+            padding: 0;
+        }
+
+        .auth-container {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .auth-header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            padding: 3rem 2rem;
+            text-align: center;
+        }
+
+        .auth-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .auth-header p {
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .auth-form {
+            display: none;
+            padding: 2rem;
+        }
+
+        .auth-form.active {
+            display: block;
+        }
+
+        .auth-form h2 {
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .auth-switch {
+            text-align: center;
+            margin-top: 1.5rem;
+            font-size: 0.9rem;
+        }
+
+        /* Navbar */
+        .navbar {
+            background-color: var(--card-background);
+            border-bottom: 1px solid var(--border-color);
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .navbar-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar-brand h1 {
+            font-size: 1.5rem;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .navbar-menu {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .nav-btn:hover {
+            background-color: var(--background-color);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-left: 2rem;
+            padding-left: 2rem;
+            border-left: 1px solid var(--border-color);
+        }
+
+        /* App Container */
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .app-container.hidden {
+            display: none;
+        }
+
+        .main-content {
+            flex: 1;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            width: 100%;
+        }
+
+        /* Views */
+        .view {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .view.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .view-header {
+            margin-bottom: 2rem;
+        }
+
+        .view-header h2 {
+            margin-bottom: 1rem;
+        }
+
+        .search-container {
+            display: flex;
+            gap: 1rem;
+            max-width: 600px;
+        }
+
+        .search-container input {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        /* Events Grid */
+        .events-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* Event Card */
+        .event-card {
+            background-color: var(--card-background);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .event-card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .event-card-image {
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            object-fit: cover;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+        }
+
+        .event-card-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .event-card-content {
+            padding: 1.5rem;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .event-card-header {
+            margin-bottom: 1rem;
+        }
+
+        .event-category {
+            display: inline-block;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .event-card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        .event-card-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .event-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .event-card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: auto;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .event-price {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .event-availability {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .event-availability.full {
+            color: var(--danger-color);
+        }
+
+        .event-card-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .event-card-actions .btn {
+            flex: 1;
+        }
+
+        /* Event Details */
+        .event-details {
+            background-color: var(--card-background);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .event-details-header {
+            width: 100%;
+            height: 400px;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 5rem;
+            margin-bottom: 2rem;
+        }
+
+        .event-details-header img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .event-details-content {
+            padding: 2rem;
+        }
+
+        .event-details-title {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .event-details-meta {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .meta-box {
+            padding: 1rem;
+            background-color: var(--background-color);
+            border-radius: 8px;
+        }
+
+        .meta-box-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .meta-box-value {
+            font-size: 1.125rem;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .event-details-description {
+            margin-bottom: 2rem;
+            line-height: 1.8;
+        }
+
+        .event-agenda {
+            margin-bottom: 2rem;
+        }
+
+        .agenda-list {
+            background-color: var(--background-color);
+            border-radius: 8px;
+            padding: 1rem;
+        }
+
+        .agenda-list-item {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            gap: 1rem;
+        }
+
+        .agenda-list-item:last-child {
+            border-bottom: none;
+        }
+
+        .agenda-time {
+            font-weight: 600;
+            color: var(--primary-color);
+            min-width: 80px;
+        }
+
+        .agenda-activity {
+            flex: 1;
+            color: var(--text-primary);
+        }
+
+        .organizer-info {
+            background-color: var(--background-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .organizer-info h3 {
+            margin-bottom: 1rem;
+        }
+
+        .organizer-details {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .organizer-contact {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .event-details-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .event-details-actions .btn {
+            flex: 1;
+            padding: 1rem;
+            font-size: 1.1rem;
+        }
+
+        /* Responses Container */
+        .responses-container {
+            background-color: var(--card-background);
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: var(--shadow);
+        }
+
+        .event-responses-header {
+            margin-bottom: 2rem;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 1rem;
+        }
+
+        .responses-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background-color: var(--background-color);
+            padding: 1.5rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+        }
+
+        .responses-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .response-item {
+            background-color: var(--background-color);
+            padding: 1.5rem;
+            border-radius: 8px;
+            border-left: 4px solid var(--primary-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .response-info {
+            flex: 1;
+        }
+
+        .response-name {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .response-details {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .response-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .response-actions .btn {
+            white-space: nowrap;
+        }
+
+        /* Contact Modal Content */
+        #contactContent {
+            padding: 2rem;
+        }
+
+        .contact-header {
+            margin-bottom: 1.5rem;
+        }
+
+        .contact-details {
+            background-color: var(--background-color);
+            padding: 1rem;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .contact-detail-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .contact-detail-label {
+            font-weight: 600;
+            min-width: 120px;
+        }
+
+        .total-price {
+            background-color: var(--background-color);
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            font-size: 1.1rem;
+        }
+
+        /* Agenda Items */
+        .agenda-items {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .agenda-item {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .agenda-time {
+            flex: 0 0 120px;
+        }
+
+        .agenda-activity {
+            flex: 1;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            background-color: var(--card-background);
+            border-radius: 12px;
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .empty-state.hidden {
+            display: none;
+        }
+
+        .empty-state a {
+            font-weight: 600;
+        }
+
+        /* Utility Classes */
+        .hidden {
+            display: none !important;
+        }
+
+        .mt-2 {
+            margin-top: 1rem;
+        }
+
+        .mb-2 {
+            margin-bottom: 1rem;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .text-success {
+            color: var(--success-color);
+        }
+
+        .text-danger {
+            color: var(--danger-color);
+        }
+
+        .text-warning {
+            color: var(--warning-color);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .navbar-container {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: flex-start;
+            }
+
+            .navbar-menu {
+                width: 100%;
+                flex-direction: column;
+            }
+
+            .nav-btn {
+                width: 100%;
+                justify-content: flex-start;
+            }
+
+            .user-info {
+                width: 100%;
+                margin-left: 0;
+                padding-left: 0;
+                border-left: none;
+            }
+
+            .events-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .event-details-meta {
+                grid-template-columns: 1fr;
+            }
+
+            .main-content {
+                padding: 1rem;
+            }
+
+            .modal-content {
+                width: 95%;
+            }
+
+            .event-details-actions {
+                flex-direction: column;
+            }
+
+            .form-actions {
+                flex-direction: column-reverse;
+            }
+
+            .response-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .response-actions {
+                width: 100%;
+                margin-top: 1rem;
+            }
+
+            .response-actions .btn {
+                flex: 1;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .navbar-brand h1 {
+                font-size: 1.25rem;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            h2 {
+                font-size: 1.25rem;
+            }
+
+            .auth-header {
+                padding: 2rem 1.5rem;
+            }
+
+            .auth-form {
+                padding: 1.5rem;
+            }
+
+            .event-form {
+                padding: 1.5rem;
+            }
+
+            .event-details-content {
+                padding: 1.5rem;
+            }
+        }
+    </style>
 </head>
 <body>
     <!-- Login/Register Modal -->
@@ -32,7 +998,7 @@
                         </label>
                     </div>
                     <button class="btn btn-primary" onclick="handleLogin()">Login</button>
-                    <p class="auth-switch">Don't have an account? <a href="#" onclick="toggleAuthForm()">Register</a></p>
+                    <p class="auth-switch">Don't have an account? <a href="#" onclick="toggleAuthForm(); return false;">Register</a></p>
                 </div>
 
                 <!-- Register Form -->
@@ -54,7 +1020,7 @@
                         </label>
                     </div>
                     <button class="btn btn-primary" onclick="handleRegister()">Register</button>
-                    <p class="auth-switch">Already have an account? <a href="#" onclick="toggleAuthForm()">Login</a></p>
+                    <p class="auth-switch">Already have an account? <a href="#" onclick="toggleAuthForm(); return false;">Login</a></p>
                 </div>
             </div>
         </div>
@@ -70,16 +1036,16 @@
                 </div>
                 <nav class="navbar-menu">
                     <button class="nav-btn" onclick="showDashboard()">
-                        <span class="icon">🏠</span> Dashboard
+                        <span>🏠</span> Dashboard
                     </button>
                     <button class="nav-btn" onclick="showMyEvents()" id="myEventsBtn" style="display:none;">
-                        <span class="icon">📋</span> My Events
+                        <span>📋</span> My Events
                     </button>
                     <button class="nav-btn" onclick="showCreateEvent()" id="createEventBtn" style="display:none;">
-                        <span class="icon">➕</span> Create Event
+                        <span>➕</span> Create Event
                     </button>
                     <button class="nav-btn" onclick="showMyEnrollments()">
-                        <span class="icon">🎫</span> My Enrollments
+                        <span>🎫</span> My Enrollments
                     </button>
                     <div class="user-info">
                         <span id="userGreeting">User</span>
@@ -234,7 +1200,7 @@
                     <!-- Creator's events will be loaded here -->
                 </div>
                 <div id="noMyEventsMsg" class="empty-state hidden">
-                    <p>📭 You haven't created any events yet. <a href="#" onclick="showCreateEvent()">Create your first event!</a></p>
+                    <p>📭 You haven't created any events yet. <a href="#" onclick="showCreateEvent(); return false;">Create your first event!</a></p>
                 </div>
             </section>
 
@@ -255,7 +1221,7 @@
                     <!-- User enrollments will be loaded here -->
                 </div>
                 <div id="noEnrollmentsMsg" class="empty-state hidden">
-                    <p>🎫 You haven't enrolled in any events yet. <a href="#" onclick="showDashboard()">Browse events</a></p>
+                    <p>🎫 You haven't enrolled in any events yet. <a href="#" onclick="showDashboard(); return false;">Browse events</a></p>
                 </div>
             </section>
         </main>
@@ -265,8 +1231,8 @@
     <div id="enrollModal" class="modal">
         <div class="modal-content">
             <button class="modal-close" onclick="closeEnrollModal()">×</button>
-            <h2>Enroll in Event</h2>
-            <form id="enrollForm" onsubmit="handleEnroll(event)">
+            <h2 style="padding: 2rem 2rem 1rem 2rem;">Enroll in Event</h2>
+            <form id="enrollForm" onsubmit="handleEnroll(event)" style="padding: 0 2rem 2rem 2rem;">
                 <div class="form-group">
                     <label>Full Name *</label>
                     <input type="text" id="enrollName" required>
@@ -306,6 +1272,747 @@
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <script>
+        // ===================== Data Management =====================
+
+        const StorageManager = {
+            getUsers: () => JSON.parse(localStorage.getItem('users') || '[]'),
+            setUsers: (users) => localStorage.setItem('users', JSON.stringify(users)),
+
+            getEvents: () => JSON.parse(localStorage.getItem('events') || '[]'),
+            setEvents: (events) => localStorage.setItem('events', JSON.stringify(events)),
+
+            getEnrollments: () => JSON.parse(localStorage.getItem('enrollments') || '[]'),
+            setEnrollments: (enrollments) => localStorage.setItem('enrollments', JSON.stringify(enrollments)),
+
+            getCurrentUser: () => JSON.parse(sessionStorage.getItem('currentUser') || 'null'),
+            setCurrentUser: (user) => sessionStorage.setItem('currentUser', JSON.stringify(user)),
+        };
+
+        // ===================== Authentication =====================
+
+        function toggleAuthForm() {
+            document.getElementById('loginForm').classList.toggle('active');
+            document.getElementById('registerForm').classList.toggle('active');
+        }
+
+        function handleRegister() {
+            const name = document.getElementById('registerName').value.trim();
+            const email = document.getElementById('registerEmail').value.trim();
+            const password = document.getElementById('registerPassword').value;
+            const isCreator = document.getElementById('registerAsCreator').checked;
+
+            if (!name || !email || !password) {
+                alert('Please fill all fields');
+                return;
+            }
+
+            const users = StorageManager.getUsers();
+            if (users.find(u => u.email === email)) {
+                alert('Email already registered');
+                return;
+            }
+
+            const newUser = {
+                id: Date.now(),
+                name,
+                email,
+                password: btoa(password),
+                isCreator,
+                createdAt: new Date().toISOString()
+            };
+
+            users.push(newUser);
+            StorageManager.setUsers(users);
+            alert('Registration successful! Please login.');
+            toggleAuthForm();
+            document.getElementById('registerName').value = '';
+            document.getElementById('registerEmail').value = '';
+            document.getElementById('registerPassword').value = '';
+        }
+
+        function handleLogin() {
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            const isCreator = document.getElementById('loginAsCreator').checked;
+
+            if (!email || !password) {
+                alert('Please fill all fields');
+                return;
+            }
+
+            const users = StorageManager.getUsers();
+            const user = users.find(u => u.email === email && btoa(password) === u.password);
+
+            if (!user) {
+                alert('Invalid credentials');
+                return;
+            }
+
+            if (isCreator && !user.isCreator) {
+                alert('This account is not registered as a creator');
+                return;
+            }
+
+            StorageManager.setCurrentUser({ ...user, password: undefined });
+            showAuthModal(false);
+            initializeApp();
+        }
+
+        function handleLogout() {
+            if (confirm('Are you sure you want to logout?')) {
+                StorageManager.setCurrentUser(null);
+                showAuthModal(true);
+                document.getElementById('loginEmail').value = '';
+                document.getElementById('loginPassword').value = '';
+                document.getElementById('loginAsCreator').checked = false;
+            }
+        }
+
+        function showAuthModal(show) {
+            document.getElementById('authModal').classList.toggle('active', show);
+            document.getElementById('appContainer').classList.toggle('hidden', show);
+        }
+
+        // ===================== App Initialization =====================
+
+        function initializeApp() {
+            const user = StorageManager.getCurrentUser();
+            document.getElementById('userGreeting').textContent = `Hello, ${user.name}!`;
+
+            const creatorBtns = document.querySelectorAll('#myEventsBtn, #createEventBtn');
+            creatorBtns.forEach(btn => btn.style.display = user.isCreator ? 'flex' : 'none');
+
+            showDashboard();
+        }
+
+        // ===================== View Management =====================
+
+        function switchView(viewId) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+        }
+
+        function showDashboard() {
+            switchView('dashboardView');
+            loadDashboardEvents();
+        }
+
+        function showCreateEvent() {
+            switchView('createEventView');
+            document.getElementById('eventName').focus();
+        }
+
+        function showMyEvents() {
+            switchView('myEventsView');
+            loadMyEvents();
+        }
+
+        function showMyEnrollments() {
+            switchView('enrollmentsView');
+            loadMyEnrollments();
+        }
+
+        function showEventDetails(eventId) {
+            switchView('eventDetailsView');
+            loadEventDetails(eventId);
+        }
+
+        function showEventResponses(eventId) {
+            switchView('eventResponsesView');
+            loadEventResponses(eventId);
+        }
+
+        // ===================== Event Management =====================
+
+        function handleCreateEvent(event) {
+            event.preventDefault();
+
+            const user = StorageManager.getCurrentUser();
+            const agendaItems = [];
+            
+            document.querySelectorAll('.agenda-item').forEach(item => {
+                const time = item.querySelector('.agenda-time').value;
+                const activity = item.querySelector('.agenda-activity').value;
+                if (time && activity) {
+                    agendaItems.push({ time, activity });
+                }
+            });
+
+            const newEvent = {
+                id: Date.now(),
+                creatorId: user.id,
+                creatorName: user.name,
+                creatorEmail: user.email,
+                creatorPhone: document.getElementById('eventContactPhone').value,
+                name: document.getElementById('eventName').value,
+                category: document.getElementById('eventCategory').value,
+                date: document.getElementById('eventDate').value,
+                time: document.getElementById('eventTime').value,
+                venue: document.getElementById('eventVenue').value,
+                city: document.getElementById('eventCity').value,
+                maxParticipants: parseInt(document.getElementById('eventParticipants').value),
+                price: parseFloat(document.getElementById('eventPrice').value) || 0,
+                description: document.getElementById('eventDescription').value,
+                banner: document.getElementById('eventBanner').value || '',
+                contactEmail: document.getElementById('eventContactEmail').value,
+                contactPhone: document.getElementById('eventContactPhone').value,
+                agenda: agendaItems,
+                createdAt: new Date().toISOString(),
+                enrollments: 0
+            };
+
+            const events = StorageManager.getEvents();
+            events.push(newEvent);
+            StorageManager.setEvents(events);
+
+            alert('Event created successfully!');
+            resetEventForm();
+            showMyEvents();
+        }
+
+        function resetEventForm() {
+            document.querySelector('.event-form').reset();
+            document.getElementById('agendaSection').classList.add('hidden');
+            document.getElementById('agendaItems').innerHTML = `
+                <div class="agenda-item">
+                    <input type="time" placeholder="Time" class="agenda-time">
+                    <input type="text" placeholder="Activity/Session" class="agenda-activity">
+                    <button type="button" class="btn btn-danger btn-small" onclick="this.parentElement.remove()">Remove</button>
+                </div>
+            `;
+        }
+
+        function addAgendaItem() {
+            const agendaItems = document.getElementById('agendaItems');
+            const newItem = document.createElement('div');
+            newItem.className = 'agenda-item';
+            newItem.innerHTML = `
+                <input type="time" placeholder="Time" class="agenda-time">
+                <input type="text" placeholder="Activity/Session" class="agenda-activity">
+                <button type="button" class="btn btn-danger btn-small" onclick="this.parentElement.remove()">Remove</button>
+            `;
+            agendaItems.appendChild(newItem);
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const agendaCheck = document.getElementById('eventAgendaCheck');
+            if (agendaCheck) {
+                agendaCheck.addEventListener('change', function() {
+                    document.getElementById('agendaSection').classList.toggle('hidden', !this.checked);
+                });
+            }
+        });
+
+        function deleteEvent(eventId) {
+            if (confirm('Are you sure you want to delete this event?')) {
+                let events = StorageManager.getEvents();
+                events = events.filter(e => e.id !== eventId);
+                StorageManager.setEvents(events);
+
+                let enrollments = StorageManager.getEnrollments();
+                enrollments = enrollments.filter(e => e.eventId !== eventId);
+                StorageManager.setEnrollments(enrollments);
+
+                alert('Event deleted successfully');
+                showMyEvents();
+            }
+        }
+
+        // ===================== Dashboard Events =====================
+
+        function loadDashboardEvents() {
+            const events = StorageManager.getEvents();
+            const container = document.getElementById('eventsGrid');
+            const noEventsMsg = document.getElementById('noEventsMsg');
+
+            if (events.length === 0) {
+                container.innerHTML = '';
+                noEventsMsg.classList.remove('hidden');
+                return;
+            }
+
+            noEventsMsg.classList.add('hidden');
+            container.innerHTML = events.map(event => createEventCard(event, true)).join('');
+        }
+
+        function createEventCard(event, showEnroll = false) {
+            const user = StorageManager.getCurrentUser();
+            const enrollments = StorageManager.getEnrollments();
+            const enrollmentCount = enrollments.filter(e => e.eventId === event.id).length;
+            const isEnrolled = enrollments.some(e => e.eventId === event.id && e.userId === user.id);
+            const eventDate = new Date(event.date);
+            const isPast = eventDate < new Date();
+            const isFull = enrollmentCount >= event.maxParticipants;
+
+            const priceText = event.price === 0 ? 'Free' : `$${event.price.toFixed(2)}`;
+            const availabilityText = `${enrollmentCount}/${event.maxParticipants} spots`;
+
+            return `
+                <div class="event-card ${isPast ? 'past-event' : ''}">
+                    <div class="event-card-image">
+                        ${event.banner ? `<img src="${event.banner}" alt="${event.name}">` : '🎉'}
+                    </div>
+                    <div class="event-card-content">
+                        <div class="event-card-header">
+                            <span class="event-category">${event.category}</span>
+                            <h3 class="event-card-title">${event.name}</h3>
+                        </div>
+                        <div class="event-card-meta">
+                            <div class="event-meta-item">📅 ${formatDate(event.date)}</div>
+                            <div class="event-meta-item">⏰ ${event.time}</div>
+                            <div class="event-meta-item">📍 ${event.venue}, ${event.city}</div>
+                        </div>
+                        <div class="event-card-footer">
+                            <div>
+                                <div class="event-price">${priceText}</div>
+                                <div class="event-availability ${isFull ? 'full' : ''}">${availabilityText}</div>
+                            </div>
+                        </div>
+                        <div class="event-card-actions" style="margin-top: 1rem;">
+                            <button class="btn btn-primary" onclick="showEventDetails(${event.id})">View Details</button>
+                            ${showEnroll && !isEnrolled && !isFull ? `<button class="btn btn-success" onclick="openEnrollModal(${event.id})">Enroll</button>` : ''}
+                            ${showEnroll && isEnrolled ? `<button class="btn btn-secondary" onclick="removeEnrollment(${event.id})">Enrolled ✓</button>` : ''}
+                            ${isFull && !isEnrolled ? `<button class="btn btn-secondary" disabled>Full</button>` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function loadMyEvents() {
+            const user = StorageManager.getCurrentUser();
+            const events = StorageManager.getEvents().filter(e => e.creatorId === user.id);
+            const container = document.getElementById('myEventsGrid');
+            const noMsg = document.getElementById('noMyEventsMsg');
+
+            if (events.length === 0) {
+                container.innerHTML = '';
+                noMsg.classList.remove('hidden');
+                return;
+            }
+
+            noMsg.classList.add('hidden');
+            container.innerHTML = events.map(event => {
+                const enrollments = StorageManager.getEnrollments().filter(e => e.eventId === event.id);
+                return `
+                    <div class="event-card">
+                        <div class="event-card-image">
+                            ${event.banner ? `<img src="${event.banner}" alt="${event.name}">` : '🎉'}
+                        </div>
+                        <div class="event-card-content">
+                            <div class="event-card-header">
+                                <span class="event-category">${event.category}</span>
+                                <h3 class="event-card-title">${event.name}</h3>
+                            </div>
+                            <div class="event-card-meta">
+                                <div class="event-meta-item">📅 ${formatDate(event.date)}</div>
+                                <div class="event-meta-item">👥 ${enrollments.length}/${event.maxParticipants} enrolled</div>
+                            </div>
+                            <div class="event-card-footer">
+                                <div class="event-price">$${(enrollments.length * event.price).toFixed(2)}</div>
+                            </div>
+                            <div class="event-card-actions" style="margin-top: 1rem; gap: 0.5rem;">
+                                <button class="btn btn-primary" onclick="showEventResponses(${event.id})">
+                                    👥 ${enrollments.length} Responses
+                                </button>
+                                <button class="btn btn-danger btn-small" onclick="deleteEvent(${event.id})">Delete</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function loadMyEnrollments() {
+            const user = StorageManager.getCurrentUser();
+            const enrollments = StorageManager.getEnrollments().filter(e => e.userId === user.id);
+            const events = StorageManager.getEvents();
+            const container = document.getElementById('enrollmentsGrid');
+            const noMsg = document.getElementById('noEnrollmentsMsg');
+
+            if (enrollments.length === 0) {
+                container.innerHTML = '';
+                noMsg.classList.remove('hidden');
+                return;
+            }
+
+            noMsg.classList.add('hidden');
+            const enrolledEvents = enrollments.map(enr => {
+                const event = events.find(e => e.id === enr.eventId);
+                return event ? { ...event, enrollmentId: enr.id, enrollmentData: enr } : null;
+            }).filter(Boolean);
+
+            container.innerHTML = enrolledEvents.map(event => `
+                <div class="event-card">
+                    <div class="event-card-image">
+                        ${event.banner ? `<img src="${event.banner}" alt="${event.name}">` : '🎉'}
+                    </div>
+                    <div class="event-card-content">
+                        <div class="event-card-header">
+                            <span class="event-category">${event.category}</span>
+                            <h3 class="event-card-title">${event.name}</h3>
+                        </div>
+                        <div class="event-card-meta">
+                            <div class="event-meta-item">📅 ${formatDate(event.date)}</div>
+                            <div class="event-meta-item">🎫 ${event.enrollmentData.tickets} ticket(s)</div>
+                        </div>
+                        <div class="event-card-footer">
+                            <div class="event-price">$${(event.price * event.enrollmentData.tickets).toFixed(2)}</div>
+                        </div>
+                        <div class="event-card-actions" style="margin-top: 1rem;">
+                            <button class="btn btn-primary" onclick="showEventDetails(${event.id})">View Details</button>
+                            <button class="btn btn-danger" onclick="removeEnrollment(${event.id})">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function filterEvents() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const events = StorageManager.getEvents();
+            const filtered = events.filter(e => 
+                e.name.toLowerCase().includes(searchTerm) ||
+                e.category.toLowerCase().includes(searchTerm) ||
+                e.city.toLowerCase().includes(searchTerm)
+            );
+
+            const container = document.getElementById('eventsGrid');
+            const noEventsMsg = document.getElementById('noEventsMsg');
+
+            if (filtered.length === 0) {
+                container.innerHTML = '';
+                noEventsMsg.classList.remove('hidden');
+                return;
+            }
+
+            noEventsMsg.classList.add('hidden');
+            container.innerHTML = filtered.map(event => createEventCard(event, true)).join('');
+        }
+
+        // ===================== Event Details =====================
+
+        function loadEventDetails(eventId) {
+            const event = StorageManager.getEvents().find(e => e.id === eventId);
+            if (!event) return;
+
+            const user = StorageManager.getCurrentUser();
+            const enrollments = StorageManager.getEnrollments().filter(e => e.eventId === eventId);
+            const isEnrolled = enrollments.some(e => e.userId === user.id);
+            const isFull = enrollments.length >= event.maxParticipants;
+            const isPast = new Date(event.date) < new Date();
+
+            let agendaHTML = '';
+            if (event.agenda && event.agenda.length > 0) {
+                agendaHTML = `
+                    <div class="event-agenda">
+                        <h3>📋 Event Schedule</h3>
+                        <div class="agenda-list">
+                            ${event.agenda.map(item => `
+                                <div class="agenda-list-item">
+                                    <div class="agenda-time">${item.time}</div>
+                                    <div class="agenda-activity">${item.activity}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            const content = `
+                <div class="event-details-header">
+                    ${event.banner ? `<img src="${event.banner}" alt="${event.name}">` : '🎉'}
+                </div>
+                <div class="event-details-content">
+                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 2rem;">
+                        <div>
+                            <span class="event-category">${event.category}</span>
+                            <h1 class="event-details-title">${event.name}</h1>
+                        </div>
+                        <div style="text-align: right;">
+                            <div class="event-price" style="font-size: 2rem;">${event.price === 0 ? 'FREE' : '$' + event.price.toFixed(2)}</div>
+                            <div style="color: var(--text-secondary);">${enrollments.length}/${event.maxParticipants} enrolled</div>
+                        </div>
+                    </div>
+
+                    <div class="event-details-meta">
+                        <div class="meta-box">
+                            <div class="meta-box-label">📅 Date</div>
+                            <div class="meta-box-value">${formatDate(event.date)}</div>
+                        </div>
+                        <div class="meta-box">
+                            <div class="meta-box-label">⏰ Time</div>
+                            <div class="meta-box-value">${event.time}</div>
+                        </div>
+                        <div class="meta-box">
+                            <div class="meta-box-label">📍 Location</div>
+                            <div class="meta-box-value">${event.venue}, ${event.city}</div>
+                        </div>
+                        <div class="meta-box">
+                            <div class="meta-box-label">👥 Capacity</div>
+                            <div class="meta-box-value">${event.maxParticipants} people</div>
+                        </div>
+                    </div>
+
+                    <div class="event-details-description">
+                        <h3>About This Event</h3>
+                        <p>${event.description}</p>
+                    </div>
+
+                    ${agendaHTML}
+
+                    <div class="organizer-info">
+                        <h3>👤 Organizer</h3>
+                        <div class="organizer-details">
+                            <div class="organizer-contact">
+                                <strong>Name:</strong> ${event.creatorName}
+                            </div>
+                            <div class="organizer-contact">
+                                <strong>Email:</strong> ${event.contactEmail}
+                            </div>
+                            ${event.contactPhone ? `<div class="organizer-contact">
+                                <strong>Phone:</strong> ${event.contactPhone}
+                            </div>` : ''}
+                        </div>
+                    </div>
+
+                    <div class="event-details-actions">
+                        ${!isEnrolled && !isFull && !isPast ? `
+                            <button class="btn btn-success" onclick="openEnrollModal(${event.id})">Enroll Now</button>
+                        ` : ''}
+                        ${isEnrolled ? `
+                            <button class="btn btn-warning" onclick="removeEnrollment(${event.id})">Cancel Enrollment</button>
+                        ` : ''}
+                        ${isFull ? `
+                            <button class="btn btn-secondary" disabled>Event Full</button>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('eventDetailsContent').innerHTML = content;
+        }
+
+        // ===================== Enrollment =====================
+
+        function openEnrollModal(eventId) {
+            const event = StorageManager.getEvents().find(e => e.id === eventId);
+            if (!event) return;
+
+            window.currentEnrollEventId = eventId;
+            document.getElementById('enrollName').value = '';
+            document.getElementById('enrollEmail').value = '';
+            document.getElementById('enrollPhone').value = '';
+            document.getElementById('enrollTickets').value = '1';
+            document.getElementById('enrollNotes').value = '';
+
+            document.getElementById('enrollTickets').max = event.maxParticipants;
+            updateTotalPrice();
+            document.getElementById('enrollModal').classList.add('active');
+        }
+
+        function closeEnrollModal() {
+            document.getElementById('enrollModal').classList.remove('active');
+        }
+
+        function updateTotalPrice() {
+            const eventId = window.currentEnrollEventId;
+            const event = StorageManager.getEvents().find(e => e.id === eventId);
+            const tickets = parseInt(document.getElementById('enrollTickets').value) || 0;
+            const total = tickets * event.price;
+            const totalDiv = document.getElementById('totalPrice');
+            
+            if (event.price === 0) {
+                totalDiv.innerHTML = '<strong>Total: FREE</strong>';
+            } else {
+                totalDiv.innerHTML = `<strong>Total: $${total.toFixed(2)}</strong>`;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const ticketsInput = document.getElementById('enrollTickets');
+            if (ticketsInput) {
+                ticketsInput.addEventListener('change', updateTotalPrice);
+                ticketsInput.addEventListener('input', updateTotalPrice);
+            }
+        });
+
+        function handleEnroll(event) {
+            event.preventDefault();
+
+            const eventId = window.currentEnrollEventId;
+            const user = StorageManager.getCurrentUser();
+            const enrollmentData = {
+                id: Date.now(),
+                userId: user.id,
+                eventId: eventId,
+                name: document.getElementById('enrollName').value,
+                email: document.getElementById('enrollEmail').value,
+                phone: document.getElementById('enrollPhone').value,
+                tickets: parseInt(document.getElementById('enrollTickets').value),
+                notes: document.getElementById('enrollNotes').value,
+                enrolledAt: new Date().toISOString()
+            };
+
+            const enrollments = StorageManager.getEnrollments();
+            enrollments.push(enrollmentData);
+            StorageManager.setEnrollments(enrollments);
+
+            alert('Successfully enrolled in the event!');
+            closeEnrollModal();
+            loadDashboardEvents();
+            showDashboard();
+        }
+
+        function removeEnrollment(eventId) {
+            if (confirm('Are you sure you want to cancel this enrollment?')) {
+                const user = StorageManager.getCurrentUser();
+                let enrollments = StorageManager.getEnrollments();
+                enrollments = enrollments.filter(e => !(e.eventId === eventId && e.userId === user.id));
+                StorageManager.setEnrollments(enrollments);
+
+                alert('Enrollment cancelled');
+                loadMyEnrollments();
+            }
+        }
+
+        // ===================== Event Responses =====================
+
+        function loadEventResponses(eventId) {
+            const event = StorageManager.getEvents().find(e => e.id === eventId);
+            if (!event) return;
+
+            const enrollments = StorageManager.getEnrollments().filter(e => e.eventId === eventId);
+            const users = StorageManager.getUsers();
+
+            const totalRevenue = enrollments.reduce((sum, e) => sum + (e.tickets * event.price), 0);
+            const responseDate = new Date(event.date);
+            const isPast = responseDate < new Date();
+
+            const responsesHTML = `
+                <div class="event-responses-header">
+                    <h2>${event.name}</h2>
+                    <p style="color: var(--text-secondary); margin-top: 0.5rem;">
+                        📅 ${formatDate(event.date)} at ${event.time}
+                    </p>
+                </div>
+
+                <div class="responses-stats">
+                    <div class="stat-card">
+                        <div class="stat-number">${enrollments.length}</div>
+                        <div class="stat-label">Total Enrollments</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">${event.maxParticipants}</div>
+                        <div class="stat-label">Capacity</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">$${totalRevenue.toFixed(2)}</div>
+                        <div class="stat-label">Total Revenue</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">${enrollments.reduce((sum, e) => sum + e.tickets, 0)}</div>
+                        <div class="stat-label">Total Tickets</div>
+                    </div>
+                </div>
+
+                ${enrollments.length === 0 ? `
+                    <div class="empty-state">
+                        <p>📭 No enrollments yet. Share your event to get responses!</p>
+                    </div>
+                ` : `
+                    <h3 style="margin-bottom: 1.5rem;">Participants</h3>
+                    <div class="responses-list">
+                        ${enrollments.map(enrollment => `
+                            <div class="response-item">
+                                <div class="response-info">
+                                    <div class="response-name">${enrollment.name}</div>
+                                    <div class="response-details">
+                                        📧 ${enrollment.email} | 📱 ${enrollment.phone}<br>
+                                        🎫 ${enrollment.tickets} ticket(s) | 💰 $${(enrollment.tickets * event.price).toFixed(2)}<br>
+                                        <small>Enrolled: ${formatDate(enrollment.enrolledAt)}</small>
+                                        ${enrollment.notes ? `<br><em>Notes: ${enrollment.notes}</em>` : ''}
+                                    </div>
+                                </div>
+                                <div class="response-actions">
+                                    <button class="btn btn-primary btn-small" onclick="openContactModal('${enrollment.name.replace(/'/g, "\\'")}', '${enrollment.email}', '${enrollment.phone}')">
+                                        📧 Contact
+                                    </button>
+                                    <button class="btn btn-secondary btn-small" onclick="removeEnrollmentAsCreator(${eventId}, ${enrollment.id})">
+                                        Remove
+                                    </button>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `}
+            `;
+
+            document.getElementById('responsesContent').innerHTML = responsesHTML;
+        }
+
+        function removeEnrollmentAsCreator(eventId, enrollmentId) {
+            if (confirm('Remove this participant?')) {
+                let enrollments = StorageManager.getEnrollments();
+                enrollments = enrollments.filter(e => e.id !== enrollmentId);
+                StorageManager.setEnrollments(enrollments);
+                loadEventResponses(eventId);
+            }
+        }
+
+        function openContactModal(name, email, phone) {
+            const contactContent = `
+                <div class="contact-header">
+                    <h2>Contact Participant</h2>
+                </div>
+                <div class="contact-details">
+                    <div class="contact-detail-item">
+                        <span class="contact-detail-label">Name:</span>
+                        <span>${name}</span>
+                    </div>
+                    <div class="contact-detail-item">
+                        <span class="contact-detail-label">Email:</span>
+                        <a href="mailto:${email}">${email}</a>
+                    </div>
+                    <div class="contact-detail-item">
+                        <span class="contact-detail-label">Phone:</span>
+                        <a href="tel:${phone}">${phone}</a>
+                    </div>
+                </div>
+                <div style="margin-top: 1.5rem; display: flex; gap: 1rem; padding: 0 2rem 2rem 2rem;">
+                    <a href="mailto:${email}" class="btn btn-primary">Send Email</a>
+                    <a href="tel:${phone}" class="btn btn-success">Call</a>
+                    <button class="btn btn-secondary" onclick="closeContactModal()">Close</button>
+                </div>
+            `;
+
+            document.getElementById('contactContent').innerHTML = contactContent;
+            document.getElementById('contactModal').classList.add('active');
+        }
+
+        function closeContactModal() {
+            document.getElementById('contactModal').classList.remove('active');
+        }
+
+        // ===================== Utility Functions =====================
+
+        function formatDate(dateString) {
+            const options = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' };
+            return new Date(dateString).toLocaleDateString('en-US', options);
+        }
+
+        // ===================== Initialization =====================
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const user = StorageManager.getCurrentUser();
+            if (user) {
+                showAuthModal(false);
+                initializeApp();
+            } else {
+                showAuthModal(true);
+            }
+        });
+    </script>
 </body>
 </html>
