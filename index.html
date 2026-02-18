@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EventHub - Create & Manage Events</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Login/Register Modal -->
+    <div id="authModal" class="modal active">
+        <div class="modal-content auth-modal">
+            <div class="auth-container">
+                <div class="auth-header">
+                    <h1>EventHub</h1>
+                    <p>Create & Manage Events Easily</p>
+                </div>
+
+                <!-- Login Form -->
+                <div id="loginForm" class="auth-form active">
+                    <h2>Login</h2>
+                    <div class="form-group">
+                        <input type="email" id="loginEmail" placeholder="Email" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="password" id="loginPassword" placeholder="Password" required>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="loginAsCreator">
+                            Login as Event Creator
+                        </label>
+                    </div>
+                    <button class="btn btn-primary" onclick="handleLogin()">Login</button>
+                    <p class="auth-switch">Don't have an account? <a href="#" onclick="toggleAuthForm()">Register</a></p>
+                </div>
+
+                <!-- Register Form -->
+                <div id="registerForm" class="auth-form">
+                    <h2>Register</h2>
+                    <div class="form-group">
+                        <input type="text" id="registerName" placeholder="Full Name" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="email" id="registerEmail" placeholder="Email" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="password" id="registerPassword" placeholder="Password" required>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="registerAsCreator">
+                            Register as Event Creator
+                        </label>
+                    </div>
+                    <button class="btn btn-primary" onclick="handleRegister()">Register</button>
+                    <p class="auth-switch">Already have an account? <a href="#" onclick="toggleAuthForm()">Login</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Application -->
+    <div id="appContainer" class="app-container hidden">
+        <!-- Header/Navbar -->
+        <header class="navbar">
+            <div class="navbar-container">
+                <div class="navbar-brand">
+                    <h1>EventHub</h1>
+                </div>
+                <nav class="navbar-menu">
+                    <button class="nav-btn" onclick="showDashboard()">
+                        <span class="icon">🏠</span> Dashboard
+                    </button>
+                    <button class="nav-btn" onclick="showMyEvents()" id="myEventsBtn" style="display:none;">
+                        <span class="icon">📋</span> My Events
+                    </button>
+                    <button class="nav-btn" onclick="showCreateEvent()" id="createEventBtn" style="display:none;">
+                        <span class="icon">➕</span> Create Event
+                    </button>
+                    <button class="nav-btn" onclick="showMyEnrollments()">
+                        <span class="icon">🎫</span> My Enrollments
+                    </button>
+                    <div class="user-info">
+                        <span id="userGreeting">User</span>
+                        <button class="btn btn-danger btn-small" onclick="handleLogout()">Logout</button>
+                    </div>
+                </nav>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Dashboard View -->
+            <section id="dashboardView" class="view active">
+                <div class="view-header">
+                    <h2>Discover Events</h2>
+                    <div class="search-container">
+                        <input type="text" id="searchInput" placeholder="Search events..." onkeyup="filterEvents()">
+                        <button class="btn btn-primary" onclick="filterEvents()">Search</button>
+                    </div>
+                </div>
+                <div id="eventsGrid" class="events-grid">
+                    <!-- Events will be loaded here -->
+                </div>
+                <div id="noEventsMsg" class="empty-state hidden">
+                    <p>📭 No events available. Check back soon!</p>
+                </div>
+            </section>
+
+            <!-- Create Event View -->
+            <section id="createEventView" class="view">
+                <div class="view-header">
+                    <h2>Create New Event</h2>
+                </div>
+                <form class="event-form" onsubmit="handleCreateEvent(event)">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Event Name *</label>
+                            <input type="text" id="eventName" placeholder="Enter event name" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Event Category *</label>
+                            <select id="eventCategory" required>
+                                <option value="">Select category</option>
+                                <option value="Conference">Conference</option>
+                                <option value="Workshop">Workshop</option>
+                                <option value="Concert">Concert</option>
+                                <option value="Sports">Sports</option>
+                                <option value="Meetup">Meetup</option>
+                                <option value="Webinar">Webinar</option>
+                                <option value="Festival">Festival</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Event Date *</label>
+                            <input type="date" id="eventDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Event Time *</label>
+                            <input type="time" id="eventTime" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Venue/Location *</label>
+                            <input type="text" id="eventVenue" placeholder="Enter event venue" required>
+                        </div>
+                        <div class="form-group">
+                            <label>City *</label>
+                            <input type="text" id="eventCity" placeholder="Enter city" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Max Participants *</label>
+                            <input type="number" id="eventParticipants" placeholder="Enter max participants" min="1" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Ticket Price ($) *</label>
+                            <input type="number" id="eventPrice" placeholder="0 for free" min="0" step="0.01" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Event Description *</label>
+                        <textarea id="eventDescription" placeholder="Describe your event..." rows="5" required></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Event Banner URL</label>
+                        <input type="url" id="eventBanner" placeholder="https://example.com/banner.jpg">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Organizer Contact Email *</label>
+                            <input type="email" id="eventContactEmail" placeholder="Enter contact email" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Organizer Contact Phone</label>
+                            <input type="tel" id="eventContactPhone" placeholder="Enter phone number">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" id="eventAgendaCheck">
+                                Add Event Agenda/Schedule
+                            </label>
+                        </div>
+                    </div>
+
+                    <div id="agendaSection" class="form-group hidden">
+                        <label>Event Agenda</label>
+                        <div id="agendaItems" class="agenda-items">
+                            <div class="agenda-item">
+                                <input type="time" placeholder="Time" class="agenda-time">
+                                <input type="text" placeholder="Activity/Session" class="agenda-activity">
+                                <button type="button" class="btn btn-danger btn-small" onclick="this.parentElement.remove()">Remove</button>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-secondary" onclick="addAgendaItem()">+ Add Agenda Item</button>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="showDashboard()">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Create Event</button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- Event Details View -->
+            <section id="eventDetailsView" class="view">
+                <button class="btn btn-secondary" onclick="showDashboard()">← Back to Events</button>
+                <div id="eventDetailsContent" class="event-details">
+                    <!-- Event details will be loaded here -->
+                </div>
+            </section>
+
+            <!-- My Events View (Creator) -->
+            <section id="myEventsView" class="view">
+                <div class="view-header">
+                    <h2>My Created Events</h2>
+                </div>
+                <div id="myEventsGrid" class="events-grid">
+                    <!-- Creator's events will be loaded here -->
+                </div>
+                <div id="noMyEventsMsg" class="empty-state hidden">
+                    <p>📭 You haven't created any events yet. <a href="#" onclick="showCreateEvent()">Create your first event!</a></p>
+                </div>
+            </section>
+
+            <!-- Event Responses View (Creator) -->
+            <section id="eventResponsesView" class="view">
+                <button class="btn btn-secondary" onclick="showMyEvents()">← Back to My Events</button>
+                <div id="responsesContent" class="responses-container">
+                    <!-- Responses will be loaded here -->
+                </div>
+            </section>
+
+            <!-- My Enrollments View (User) -->
+            <section id="enrollmentsView" class="view">
+                <div class="view-header">
+                    <h2>My Event Enrollments</h2>
+                </div>
+                <div id="enrollmentsGrid" class="events-grid">
+                    <!-- User enrollments will be loaded here -->
+                </div>
+                <div id="noEnrollmentsMsg" class="empty-state hidden">
+                    <p>🎫 You haven't enrolled in any events yet. <a href="#" onclick="showDashboard()">Browse events</a></p>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Event Enrollment Modal -->
+    <div id="enrollModal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeEnrollModal()">×</button>
+            <h2>Enroll in Event</h2>
+            <form id="enrollForm" onsubmit="handleEnroll(event)">
+                <div class="form-group">
+                    <label>Full Name *</label>
+                    <input type="text" id="enrollName" required>
+                </div>
+                <div class="form-group">
+                    <label>Email *</label>
+                    <input type="email" id="enrollEmail" required>
+                </div>
+                <div class="form-group">
+                    <label>Phone Number *</label>
+                    <input type="tel" id="enrollPhone" required>
+                </div>
+                <div class="form-group">
+                    <label>Number of Tickets *</label>
+                    <input type="number" id="enrollTickets" min="1" max="10" value="1" required>
+                </div>
+                <div class="form-group">
+                    <label>Additional Notes</label>
+                    <textarea id="enrollNotes" placeholder="Any special requirements or notes" rows="3"></textarea>
+                </div>
+                <div id="totalPrice" class="total-price"></div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeEnrollModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Confirm Enrollment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Contact Modal -->
+    <div id="contactModal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeContactModal()">×</button>
+            <div id="contactContent">
+                <!-- Contact details will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
